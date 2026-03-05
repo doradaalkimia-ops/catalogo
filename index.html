@@ -40,8 +40,10 @@ body{
   position:fixed;inset:0;z-index:9000;
   background:var(--ink);
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.5rem;
-  transition:opacity .8s ease, visibility .8s ease;
+  transition:opacity .5s ease, visibility .5s ease;
+  opacity:0;visibility:hidden;pointer-events:none;
 }
+#loader.show{opacity:1;visibility:visible;pointer-events:all}
 #loader.gone{opacity:0;visibility:hidden;pointer-events:none}
 .ld-name{
   font-family:'Cormorant',serif;
@@ -660,8 +662,8 @@ function applyConfig() {
 
 /* ════════════════════════ CSV FETCH ════════════════════════ */
 async function fetchCSV() {
+  document.getElementById('loader').classList.add('show');
   try {
-    // productos.csv is in the same folder as index.html
     const res = await fetch('./productos.csv');
     if (!res.ok) throw new Error('No se encontró productos.csv');
     const text = await res.text();
@@ -830,7 +832,9 @@ function lbClose(e) {
 
 /* ════════════════════════ HELPERS ════════════════════════ */
 function hideLoader() {
-  setTimeout(() => document.getElementById('loader').classList.add('gone'), 500);
+  setTimeout(() => {
+    document.getElementById('loader').classList.remove('show');
+  }, 300);
 }
 function errHTML(msg) {
   return `<div class="empty" style="color:var(--g)">
