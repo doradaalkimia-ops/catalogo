@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OroAnt — Joyería Fina</title>
+<title>Alkimia Dorada — Joyería Fina</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=DM+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
 <style>
@@ -472,34 +472,14 @@ footer{
   <div class="ld-track"><div class="ld-fill"></div></div>
 </div>
 
-<!-- ── SETUP MODAL ── -->
-<div id="setup">
-  <div class="setup-box">
-    <h2>Configurar catálogo</h2>
-    <p>
-      Este sitio lee el archivo <code style="color:var(--g);font-size:.85em">productos.csv</code> que está junto al HTML.
-      Cuando lo publiques en GitHub Pages, el catálogo se cargará automáticamente.<br><br>
-      Para ver una demo ahora mismo, haz clic en <strong>"Ver demo"</strong>.
-    </p>
-    <div class="fld">
-      <label>Tu número de WhatsApp</label>
-      <input type="text" id="cfgWA" placeholder="573001234567">
-      <small>Código de país + número, sin + ni espacios. Ej: 573001234567</small>
-    </div>
-    <div class="fld">
-      <label>Nombre de tu negocio (opcional)</label>
-      <input type="text" id="cfgName" placeholder="OroAnt">
-    </div>
-    <div class="setup-acts">
-      <button class="btn-load" onclick="applyConfig()">Guardar y cargar</button>
-      <button class="btn-demo-lnk" onclick="loadDemo()">Ver demo →</button>
-    </div>
-  </div>
-</div>
+<!-- setup modal removed - config is hardcoded -->
 
 <!-- ── HEADER ── -->
 <header id="hdr">
-  <a href="#" class="brand">Oro<em>Ant</em></a>
+  <a href="#" class="brand">
+    <img src="./logo_alkimia.jpg" alt="Alkimia Dorada" style="height:40px;width:auto;object-fit:contain;vertical-align:middle;margin-right:.5rem;" onerror="this.style.display='none'">
+    <span>Alkimia <em>Dorada</em></span>
+  </a>
   <nav class="hdr-nav">
     <a href="#oro" id="navG">Oro 18k</a>
     <a href="#plata" id="navS">Plata 925</a>
@@ -596,7 +576,7 @@ footer{
 <!-- ── FOOTER ── -->
 <footer>
   <div>
-    <div class="ft-brand" id="ftBrand">OroAnt</div>
+    <div class="ft-brand" id="ftBrand">Alkimia Dorada</div>
     <div class="ft-sub">Joyería fina · Oro 18k · Plata 925</div>
   </div>
   <div class="ft-city">Medellín, Colombia</div>
@@ -604,8 +584,8 @@ footer{
 
 <script>
 /* ════════════════════════ STATE ════════════════════════ */
-let WA = localStorage.getItem('oa_wa') || '';
-let BNAME = localStorage.getItem('oa_name') || 'OroAnt';
+let WA = '573226988645';
+let BNAME = 'Alkimia Dorada';
 let products = [];
 let activeCat = {g:'Todos', s:'Todos'};
 let lbImgs = [], lbIdx = 0;
@@ -636,14 +616,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'ArrowRight') lbStep(1);
   });
 
-  // Show setup or load
-  if (WA || localStorage.getItem('oa_configured')) {
-    document.getElementById('setup').style.display = 'none';
-    document.getElementById('cfgWA').value = WA;
-    document.getElementById('cfgName').value = BNAME;
-    fetchCSV();
-  }
-  // else setup modal stays visible
+  // Auto-load CSV, no setup needed
+  fetchCSV();
 });
 
 /* ════════════════════════ CONFIG ════════════════════════ */
@@ -660,22 +634,42 @@ function applyConfig() {
   fetchCSV();
 }
 
-/* ════════════════════════ CSV FETCH ════════════════════════ */
+/* ════════════════════════ CSV EMBEBIDO ════════════════════════
+   ACTUALIZA ESTA VARIABLE CON TU CSV REAL.
+   También puedes editar precios directamente aquí.
+   En GitHub Pages también se leerá desde el archivo productos.csv
+   si está disponible (lo que tengas aquí es el fallback local).
+════════════════════════════════════════════════════════════════ */
+const CSV_EMBEBIDO = `material,categoria,sku,precio,imagenes,carpeta
+Oro 18k,Anillos,10000,105000,2,Catalogo Oro/Anillos/10000
+Oro 18k,Anillos,13050,105000,3,Catalogo Oro/Anillos/13050
+Oro 18k,Anillos,13101,105000,3,Catalogo Oro/Anillos/13101
+Oro 18k,Cadenas,20001,180000,2,Catalogo Oro/Cadenas/20001
+Oro 18k,Cadenas,20045,210000,4,Catalogo Oro/Cadenas/20045
+Oro 18k,Aretes,30010,95000,2,Catalogo Oro/Aretes/30010
+Oro 18k,Dijes,40005,75000,1,Catalogo Oro/Dijes/40005
+Plata 925,Anillos,50001,65000,2,Catalogo Plata/Anillos/50001
+Plata 925,Cadenas,60001,90000,2,Catalogo Plata/Cadenas/60001
+Plata 925,Aretes,70001,55000,2,Catalogo Plata/Aretes/70001
+Plata 925,Dijes,80001,48000,1,Catalogo Plata/Dijes/80001`;
+
 async function fetchCSV() {
   document.getElementById('loader').classList.add('show');
+  let text = null;
+
+  // Intenta cargar desde archivo (funciona en GitHub Pages / servidor)
   try {
     const res = await fetch('./productos.csv');
-    if (!res.ok) throw new Error('No se encontró productos.csv');
-    const text = await res.text();
-    products = parseCSV(text);
-    buildTabs('g'); buildTabs('s');
-    render('g'); render('s');
-  } catch(e) {
-    document.getElementById('gridG').innerHTML = errHTML(e.message);
-    document.getElementById('gridS').innerHTML = errHTML(e.message);
-  } finally {
-    hideLoader();
-  }
+    if (res.ok) text = await res.text();
+  } catch(e) { /* bloqueado en local, usamos embebido */ }
+
+  // Si no pudo cargar el archivo, usa el CSV embebido arriba
+  if (!text) text = CSV_EMBEBIDO;
+
+  products = parseCSV(text);
+  buildTabs('g'); buildTabs('s');
+  render('g'); render('s');
+  hideLoader();
 }
 
 function parseCSV(txt) {
@@ -750,19 +744,17 @@ function render(mat) {
 
 /* ── Card HTML ── */
 function cardHTML(p, mat) {
-  // Build image path from the 'carpeta' column: "Catalogo Oro/Anillos/10000"
-  // Images are: ./Catalogo Oro/Anillos/10000/1.jpg, 2.jpg...
   const folder = (p.carpeta||'').replace(/\\/g, '/');
   const count = parseInt(p.imagenes) || 1;
-  const firstImg = folder ? `./${folder}/1.jpg` : '';
   const escaped = JSON.stringify(p).replace(/"/g, '&quot;');
+  const firstImg = folder ? `./IMG_PLACEHOLDER_${folder}/1` : '';
 
   return `
   <div class="card" onclick='openLb(${escaped}, "${mat}")'>
     <div class="card-photo">
-      ${firstImg
-        ? `<img src="${firstImg}" alt="SKU ${p.sku}" loading="lazy"
-              onerror="this.parentElement.innerHTML='<div class=card-nophoto>◇</div>'">`
+      ${folder
+        ? `<img src="${imgSrc(folder, 1)}" alt="SKU ${p.sku}" loading="lazy"
+              onerror="tryNextFmt(this, '${folder}', 1)">`
         : `<div class="card-nophoto">◇</div>`}
       <span class="card-badge ${mat}">${p.material||''}</span>
       ${count>1 ? `<span class="card-count">${count} fotos</span>` : ''}
@@ -781,14 +773,28 @@ function cardHTML(p, mat) {
   </div>`;
 }
 
+// Formatos a intentar en orden
+const FMTS = ['jpg','webp','png','jpeg'];
+function imgSrc(folder, n, fmtIdx=0) {
+  return `./${folder}/${n}.${FMTS[fmtIdx]}`;
+}
+function tryNextFmt(img, folder, n, fmtIdx=0) {
+  const next = fmtIdx + 1;
+  if (next < FMTS.length) {
+    img.onerror = () => tryNextFmt(img, folder, n, next);
+    img.src = imgSrc(folder, n, next);
+  } else {
+    img.parentElement.innerHTML = '<div class="card-nophoto">◇</div>';
+  }
+}
+
 /* ════════════════════════ LIGHTBOX ════════════════════════ */
 function openLb(p, mat) {
   const folder = (p.carpeta||'').replace(/\\/g, '/');
   const count = parseInt(p.imagenes) || 1;
-  lbImgs = folder ? Array.from({length:count}, (_,i) => `./${folder}/${i+1}.jpg`) : [];
+  lbImgs = folder ? Array.from({length:count}, (_,i) => ({folder, n:i+1})) : [];
   lbIdx = 0;
 
-  // Info panel
   document.getElementById('lbMat').innerHTML =
     `<span class="lb-dot ${mat}"></span><span class="lb-matname ${mat}">${p.material||''}</span>`;
   document.getElementById('lbCatTxt').textContent = p.categoria || '';
@@ -808,16 +814,24 @@ function renderLb() {
     document.getElementById('lbStrip').innerHTML = '';
     return;
   }
-  document.getElementById('lbImg').src = lbImgs[lbIdx];
-  document.getElementById('lbStrip').innerHTML = lbImgs.map((src, i) =>
-    `<img class="lb-th ${i===lbIdx?'on':''}" src="${src}" onclick="lbGo(${i})"
-      onerror="this.style.display='none'">`
+  const {folder, n} = lbImgs[lbIdx];
+  const mainImg = document.getElementById('lbImg');
+  mainImg.src = imgSrc(folder, n, 0);
+  mainImg.onerror = () => tryNextFmt(mainImg, folder, n, 0);
+
+  document.getElementById('lbStrip').innerHTML = lbImgs.map(({folder:f, n:num}, i) =>
+    `<img class="lb-th ${i===lbIdx?'on':''}" src="${imgSrc(f, num, 0)}"
+      onclick="lbGo(${i})"
+      onerror="tryNextFmt(this,'${f}',${num},0)">`
   ).join('');
 }
 
 function lbGo(i) {
   lbIdx = i;
-  document.getElementById('lbImg').src = lbImgs[i];
+  const {folder, n} = lbImgs[i];
+  const mainImg = document.getElementById('lbImg');
+  mainImg.src = imgSrc(folder, n, 0);
+  mainImg.onerror = () => tryNextFmt(mainImg, folder, n, 0);
   document.querySelectorAll('.lb-th').forEach((t,idx) => t.classList.toggle('on', idx===i));
 }
 function lbStep(d) {
